@@ -1,0 +1,90 @@
+network_new(1)
+network_new: network 0 created
+network_new(0)
+network_new: network 1 created
+network_add_link(1, Kabaty, Natolin)
+network_add_link: network 1, link (Kabaty,Natolin) added
+network_nodes_number(1)
+network_nodes_number: network 1 contains 2 nodes
+network_links_number(1)
+network_links_number: network 1 contains 1 links
+network_out_degree(1, Kabaty)
+network_in_degree(1, Kabaty)
+network_out_degree(1, Natolin)
+network_in_degree(1, Natolin)
+network_add_link(1, Natolin, Imielin)
+network_add_link: network 1, link (Natolin,Imielin) added
+network_nodes_number(1)
+network_nodes_number: network 1 contains 3 nodes
+network_links_number(1)
+network_links_number: network 1 contains 2 links
+network_out_degree(1, Natolin)
+network_in_degree(1, Natolin)
+network_out_degree(1, Imielin)
+network_in_degree(1, Imielin)
+network_add_link(1, Imielin, Stokłosy)
+network_add_link: network 1, link (Imielin,Stokłosy) added
+network_nodes_number(1)
+network_nodes_number: network 1 contains 4 nodes
+network_links_number(1)
+network_links_number: network 1 contains 3 links
+network_out_degree(1, Imielin)
+network_in_degree(1, Imielin)
+network_out_degree(1, Stokłosy)
+network_in_degree(1, Stokłosy)
+network_remove_link(1, Kabaty, Natolin)
+network_remove_link: link (Kabaty,Natolin) removed from network 1
+network_nodes_number(1)
+network_nodes_number: network 1 contains 4 nodes
+network_links_number(1)
+network_links_number: network 1 contains 2 links
+network_out_degree(1, Kabaty)
+network_in_degree(1, Kabaty)
+network_out_degree(1, Natolin)
+network_in_degree(1, Natolin)
+network_remove_node(1, Imielin)
+network_remove_node: network 1, node Imielin removed
+network_nodes_number(1)
+network_nodes_number: network 1 contains 3 nodes
+network_links_number(1)
+network_links_number: network 1 contains 0 links
+network_out_degree(1, Kabaty)
+network_in_degree(1, Kabaty)
+network_out_degree(1, Natolin)
+network_in_degree(1, Natolin)
+network_out_degree(1, Stokłosy)
+network_in_degree(1, Stokłosy)
+network_add_node(1, Imielin)
+network_add_node: network 1, node Imielin added
+network_nodes_number(1)
+network_nodes_number: network 1 contains 4 nodes
+network_links_number(1)
+network_links_number: network 1 contains 0 links
+network_out_degree(1, Imielin)
+network_in_degree(1, Imielin)
+network_add_link(1, Kabaty, Kabaty)
+network_add_link: network 1, link (Kabaty,Kabaty) added
+network_nodes_number(1)
+network_nodes_number: network 1 contains 4 nodes
+network_links_number(1)
+network_links_number: network 1 contains 1 links
+network_out_degree(1, Kabaty)
+network_in_degree(1, Kabaty)
+network_clear(1)
+network_clear: network 1 cleared
+network_add_link(0, 0, 0)
+network_add_link: network 0, link (0,0) added
+network_nodes_number(0)
+network_nodes_number: network 0 contains 1 nodes
+network_links_number(0)
+network_links_number: network 0 contains 1 links
+network_out_degree(0, 0)
+network_in_degree(0, 0)
+network_remove_node(0, 0)
+network_remove_node: attempt to remove node from grow-only network
+network_nodes_number(0)
+network_nodes_number: network 0 contains 1 nodes
+network_links_number(0)
+network_links_number: network 0 contains 1 links
+network_out_degree(0, 0)
+network_in_degree(0, 0)
