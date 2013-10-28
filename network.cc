@@ -133,8 +133,6 @@ typedef std::map<ID, network> setOfNetworks;
 /*
  * Globalna instancja zbioru sieci.
  */
-setOfNetworks networks;
-
 setOfNetworks& getNetworks()
 {
     static setOfNetworks res;
@@ -148,7 +146,7 @@ setOfNetworks& getNetworks()
  */
 inline ID getFreeID()
 {
-	if(networks.empty())
+    if(getNetworks().empty())
 		return 0;
 	else
         return (--getNetworks().end())->first + 1;
