@@ -135,6 +135,12 @@ typedef std::map<ID, network> setOfNetworks;
  */
 setOfNetworks networks;
 
+setOfNetworks& getNetworks()
+{
+    static setOfNetworks res;
+    return res;
+}
+
 /*
  * Zwraca dostępne do wykorzystania ID. W przypadku świeżo zainicjalizowanej
  * zwraca 0, w przeciwnym przypadku ID następujące bezpośrednio po
@@ -145,7 +151,7 @@ inline ID getFreeID()
 	if(networks.empty())
 		return 0;
 	else
-		return (--networks.end())->first + 1;
+        return (--getNetworks().end())->first + 1;
 }
 
 /*
@@ -163,7 +169,7 @@ std::pair<ID, network> newNetwork(networkType ntype)
  */
 inline bool doesNetworkExist(ID idToCheck)
 {
-	return networks.find(idToCheck) != networks.end();
+    return getNetworks().find(idToCheck) != getNetworks().end();
 }
 
 /*
@@ -171,7 +177,7 @@ inline bool doesNetworkExist(ID idToCheck)
  */
 inline networkGraph &getGraphOfNetwork(ID id)
 {
-	return (networks.find(id)->second).first;
+    return (getNetworks().find(id)->second).first;
 }
 
 /*
@@ -179,7 +185,7 @@ inline networkGraph &getGraphOfNetwork(ID id)
  */
 inline bool getNetworkType(ID id)
 {
-	return (networks.find(id)->second).second;
+    return (getNetworks().find(id)->second).second;
 }
 
 /*
@@ -199,7 +205,8 @@ bool doesNetworkContainVertex(ID id, node v, node w)
  */
 unsigned long network_new(int growing)
 {
-	networkType ntype;
+    ios_base::Init init;
+    networkType ntype;
 	
 	if(growing == 0)
 		ntype = NOTGROWINGNET;
@@ -207,17 +214,17 @@ unsigned long network_new(int growing)
 		ntype = GROWINGNET;
 	
 	singleNetwork ret = newNetwork(ntype);
-	networks.insert(ret);
+    getNetworks().insert(ret);
 	
 	unsigned long result = ret.first;
-	
+
 	if(debug)
 	{
 		cerr << "network_new(" << growing << ")" << endl;
-		cerr << "network_new: network " << result<< " created" << endl;
+        cerr << "network_new: network " << result<< " created" << endl;
 	}
 	
-	return result;
+    return result;
 }
 
 /*
@@ -232,7 +239,7 @@ void network_delete(unsigned long id)
 		//TODO tutaj przydałoby się chyba wynazywanie obłożyć asercją, póki co
 		//TODO wiemy tylko, że sieć istnieje.
 		cerr << "newtwork_delete: network " << id << " deleted" << endl;
-		networks.erase(id);
+        getNetworks().erase(id);
 	}
 	else
 		if(debug)
@@ -560,7 +567,7 @@ size_t network_in_degree(unsigned long id, const char* label)
 	if(graph.first.find(node(label)) == graph.first.end())
 	{
 		if(debug)
-			cerr << ", label " << label << " doesn't exist" << endl;
+            cerr << ", label " << label << " doesn't exist  " << endl;
 		return 0;
 	}
 	
