@@ -1,7 +1,7 @@
 #ifdef DEBUG
 	const bool debug = true;
 #else
-    const bool debug = false;
+	const bool debug = false;
 #endif
 
 #include <iostream>
@@ -14,63 +14,10 @@
 #include <assert.h>
 #include "network.h"
 
-using namespace std;
-
-/* TODO Nie wiem czy nie przekombinowałem z tą reprezentacją,
- * TODO w każdym razie dołączam schemat co i jak.
- * TODO Ze względu na problemy ze wrzucaniem wierzchołków bez
- * TODO wyjściwoych krawędzi na multimapę zdecydowałem się je
- * TODO rozdzielić od wierzchołków z OUTDEG = 0.
- * TODO Trzeba będzie popatrzeć które ze zdań warunkowych podpiąć
- * TODO tylko pod debug-level = 0.
- * TODO Wypisywanie na strumień błedów też zasadniczo jest na słowo honoru
- * TODO chyba trzeba byłoby pododawać asercje, póki co jest pokazany tylko
- * TODO potok wykonywania zdań warunkowych, nic nie wiemy o realnej
- * TODO poprawności wykonania.
- * TODO uwzględnić ten moduł growingnet.h
- * TODO Do wytestowania/wydebugowania, trzeba będzie w szczególności potestować
- * TODO bardziej kompleksowo te zagnieżdżone pętle po iteratorach, przy
- * TODO usuwaniu/sprawdzaniu istnienia wartości w multimapie.
- * TODO Dodać jakąś flagę która będzie uniemożliwiałą wyświetlanie kodu
- * TODO debugującego przy wewnętrznych wywołaniach.
- *
- *                STRUKTURY DANYCH UŻYTE W ROZWIĄZANIU
- *
- *
- *                     unsigned long
- *                     |
- * setOfNetworks ~ map<ID, network>
- *                         |
- * -------------------------
- * |
- * network ~ pair<networkGraph, networkType>
- *                |             |
- * ----------------             enum
- * |
- * networkGraph ~ pair<nodes, vertices>
- *                     |      |
- * ---------------------      |
- * |                          |
- * nodes ~ set<node>          |
- *                            |    |     |              |
- *                                 -------              |
- *                                    |                 |
- *                                    string            |
- *                                    |                 |
- *                               ------                 |
- *                               |                      |
- * vertices ~ set<vertex>                  |
- * |                                                    |
- * ------------------------------------------------------
- *
- * singleNetwork ~ pair<ID, network>
- */
-
-
 /*
  * Typ sieci.
  */
-enum networkType
+enum netType
 {
 	GROWINGNET,
 	NOTGROWINGNET
@@ -86,6 +33,9 @@ typedef std::string node;
  */
 typedef std::pair<node, node> vertex;
 
+/*
+ * Komparator leksykograficzny krawędzi.
+ */
 struct compareLex
 {
 	bool operator()(const vertex &v1, const vertex &v2)
@@ -113,12 +63,13 @@ typedef std::set<node> nodes;
 /*
  * Reprezentacja grafu reprezentującego sieć.
  */
+//TODO na co nam te referencje
 typedef std::pair<nodes&, vertices&> networkGraph;
 
 /*
  * Reprezentacja sieci.
  */
-typedef std::pair<networkGraph, networkType> network;
+typedef boost::tuple<nodes, vertices, netType> network;
 
 /*
  * Pojedyncza sieć.
@@ -133,10 +84,11 @@ typedef std::map<ID, network> setOfNetworks;
 /*
  * Globalna instancja zbioru sieci.
  */
-setOfNetworks& getNetworks()
+//TODO na co nam ten static
+setOfNetworks &getNetworks()
 {
-    static setOfNetworks res;
-    return res;
+	static setOfNetworks res;
+	return res;
 }
 
 /*
@@ -146,55 +98,52 @@ setOfNetworks& getNetworks()
  */
 inline ID getFreeID()
 {
-    if(getNetworks().empty())
+	if(getNetworks().empty())
 		return 0;
 	else
-        return (--getNetworks().end())->first + 1;
+		return (--getNetworks().end())->first + 1;
 }
 
 /*
  * Zwraca reprezentację pustej sieci wraz z poprawnie nadanym ID.
  */
-std::pair<ID, network> newNetwork(networkType ntype)
+//TODO na co nam ten static?
+std::pair<ID, network> newNetwork(const netType &nType)
 {
 	static nodes n = nodes();
 	static vertices v = vertices();
-	return singleNetwork(getFreeID(), network(networkGraph(n, v), ntype));
+	return singleNetwork(getFreeID(), network(n, v, nType));
 }
 
 /*
  * Sprawdza czy istnieje sieć o podanym ID.
  */
-inline bool doesNetworkExist(ID idToCheck)
+inline bool doesNetworkExist(const ID &idToCheck)
 {
-    return getNetworks().find(idToCheck) != getNetworks().end();
+	return getNetworks().find(idToCheck) != getNetworks().end();
 }
 
 /*
- * W przypadku istnienia sieci reprezentowanej poprzez ID zwraca jej graf.
+ * W przypadku istniena sieci reprezentowanej poprzez ID zwraca jej wierzchołki.
  */
-inline networkGraph &getGraphOfNetwork(ID id)
+inline nodes &getNodes(const ID &id)
 {
-    return (getNetworks().find(id)->second).first;
+	return boost::get<0>(getNetworks().find(id)->second);
 }
 
+/*
+ * W przypadku istniena sieci reprezentowanej poprzez ID zwraca jej krawędzie.
+ */
+inline vertices &getVertices(const ID &id)
+{
+	return boost::get<1>(getNetworks().find(id)->second);
+}
 /*
  * W przypadku istnienia sieci reprezentowanej poprzez ID zwraca jej typ.
  */
-inline bool getNetworkType(ID id)
+inline netType &getNetType(const ID &id)
 {
-    return (getNetworks().find(id)->second).second;
-}
-
-/*
- * Sprawdza czy w istniejącej sieci istnieje krawędź [v,w].
- */
-bool doesNetworkContainVertex(ID id, node v, node w)
-{
-	cerr << "doesNetworkContainVertex(" << id << ", " << v << ", " << w << ")";
-	
-	vertices vert = getGraphOfNetwork(id).second;
-	return vert.find(vertex(v, w)) != vert.end();
+	return boost::get<2>((getNetworks().find(id)->second));
 }
 
 /*
@@ -203,8 +152,9 @@ bool doesNetworkContainVertex(ID id, node v, node w)
  */
 unsigned long network_new(int growing)
 {
-    ios_base::Init init;
-    networkType ntype;
+	///TODO COTO \/
+	std::ios_base::Init init;
+	netType ntype;
 	
 	if(growing == 0)
 		ntype = NOTGROWINGNET;
@@ -212,17 +162,17 @@ unsigned long network_new(int growing)
 		ntype = GROWINGNET;
 	
 	singleNetwork ret = newNetwork(ntype);
-    getNetworks().insert(ret);
+	getNetworks().insert(ret);
 	
 	unsigned long result = ret.first;
-
+	
 	if(debug)
 	{
-		cerr << "network_new(" << growing << ")" << endl;
-        cerr << "network_new: network " << result<< " created" << endl;
+		std::cerr << "network_new(" << growing << ")" << std::endl;
+		std::cerr << "network_new: network " << result<< " created" << std::endl;
 	}
 	
-    return result;
+	return result;
 }
 
 /*
@@ -231,17 +181,18 @@ unsigned long network_new(int growing)
 void network_delete(unsigned long id)
 {
 	if(debug)
-		cerr << "network_delete(" << id << ")" << endl;
+		std::cerr << "network_delete(" << id << ")" << std::endl;
 	if(doesNetworkExist(id))
 	{
-		//TODO tutaj przydałoby się chyba wynazywanie obłożyć asercją, póki co
+		//TODO tutaj przydałoby się chyba wymazywanie obłożyć asercją, póki co
 		//TODO wiemy tylko, że sieć istnieje.
-		cerr << "newtwork_delete: network " << id << " deleted" << endl;
-        getNetworks().erase(id);
+		if(debug)
+			std::cerr << "newtwork_delete: network " << id << " deleted" << std::endl;
+		getNetworks().erase(id);
 	}
 	else
 		if(debug)
-			cerr << "network_delete: network doesn't exist" << endl;
+			std::cerr << "network_delete: network doesn't exist" << std::endl;
 }
 
 /*
@@ -251,20 +202,19 @@ size_t network_nodes_number(unsigned long id)
 {
 	if(debug)
 	{
-		cerr << "network_nodes_number(" << id << ")" << endl;
-		cerr << "newtork_nodes_number: network " << id << " contains ";
+		std::cerr << "network_nodes_number(" << id << ")" << std::endl;
+		std::cerr << "newtork_nodes_number: network " << id << " contains ";
 	}
 	if(doesNetworkExist(id))
 	{
-		networkGraph graph = getGraphOfNetwork(id);
-		size_t ret = graph.first.size();
-		cerr << ret << " nodes" << endl;
+		size_t ret = getNodes(id).size();
+		std::cerr << ret << " nodes" << std::endl;
 		return ret;
 	}
 	else
 	{
 		if(debug)
-			cerr << " 0 nodes" << endl;
+			std::cerr << " 0 nodes" << std::endl;
 		return 0;
 	}
 }
@@ -276,21 +226,21 @@ size_t network_links_number(unsigned long id)
 {
 	if(debug)
 	{
-		cerr << "network_links_number(" << id << ")" << endl;
-		cerr << "network_links_number: network " << id << " has ";
+		std::cerr << "network_links_number(" << id << ")" << std::endl;
+		std::cerr << "network_links_number: network " << id << " contains ";
 	}
 	if(doesNetworkExist(id))
 	{
-		size_t counter = getGraphOfNetwork(id).second.size();
+		size_t counter = getVertices(id).size();
 		
 		if(debug)
-			cerr << counter << " links" << endl;
+			std::cerr << counter << " links" << std::endl;
 		return counter;
 	}
 	else
 	{
 		if(debug)
-			cerr << "0 links" << endl;
+			std::cerr << "0 links" << std::endl;
 		return 0;
 	}
 }
@@ -303,29 +253,30 @@ void network_add_node(unsigned long id, const char* label)
 {
 	if(debug)
 	{
-		cerr << "network_add_node(" << id << ", " << label << ")" << endl;
-		cerr << "newtork_add_node: network " << id;
+		std::cerr << "network_add_node(" << id << ", " << label << ")" << std::endl;
+		std::cerr << "newtork_add_node: network " << id;
 	}
 	if(doesNetworkExist(id))
 	{
-		nodes graph = getGraphOfNetwork(id).first;
-		
 		//Nie ma jeszcze zaznaczonego wierzchołka, możemy dodawać.
-		if(graph.find(node(label)) == graph.end())
+		if(getNodes(id).find(node(label)) == getNodes(id).end())
 		{
 			if(debug)
-				cerr << ", node " << label << " added" << endl;
-			cerr << "size = " << graph.size() << endl;
-			graph.insert(node(label));
-			cerr << "size = " << graph.size() << endl;
+			{
+				std::cerr << ", node " << label << " added" << std::endl;
+				std::cerr << "size = " << getNodes(id).size() << std::endl;
+			}
+			getNodes(id).insert(node(label));
+			//TODO DELETE
+			std::cerr << "size = " << getNodes(id).size() << std::endl;
 		}
 		else
 			if(debug)
-				cerr << ", node " << label << " already exists" << endl;
+				std::cerr << ", node " << label << " already exists" << std::endl;
 	}
 	else
 		if(debug)
-			cerr << " doesn't exist" << endl;
+			std::cerr << " doesn't exist" << std::endl;
 }
 
 /*
@@ -335,47 +286,44 @@ void network_add_node(unsigned long id, const char* label)
 void network_remove_node(unsigned long id, const char* label)
 {
 	if(debug)
-		cerr << "network_remove_node(" << id << ", " << label << ")" << endl;
+		std::cerr << "network_remove_node(" << id << ", " << label << ")" << std::endl;
 	if(!doesNetworkExist(id))
 	{
 		if(debug)
-			cerr << "network_remove_node: network " << id << " doesn't exist" << endl;
+			std::cerr << "network_remove_node: network " << id << " doesn't exist" << std::endl;
 		return;
 	}
-	if(getNetworkType(id) == GROWINGNET)
+	if(getNetType(id) == GROWINGNET)
 	{
 		if(debug)
-			cerr << "newtork_remove_node: network " << id << " is a growing network, failed to remove node " << label << endl;
+			std::cerr << "newtork_remove_node: network " << id << " is a growing network, failed to remove node " << label << std::endl;
 		return;
 	}
 	
-	networkGraph graph = getGraphOfNetwork(id);
+	if(getNodes(id).find(node(label)) == getNodes(id).end())
+	{
+		if(debug)
+			std::cerr << "network_remove_node: network " << id << " doesn't contain node " << label << ", failed to remove node " << label << std::endl;
+		return;
+	}
 	
 	//Usuwamy wierzchołek wraz z ewentualnymi krawędziami wychodzącymi z niego.
-	if(graph.first.find(node(label)) == graph.first.end())
-		if(debug)
-		{
-			cerr << "network_remove_node: network " << id << " doesn't contain node " << label << ", failed to remove node " << label << endl;
-			return;
-		}
-	
 	if(debug)
-		cerr << "newtork_remove_node: network " << id << " node " << label << " removed" << endl;
-	graph.first.erase(graph.first.find(node(label)));
+		std::cerr << "network_remove_node: network " << id << " node " << label << " removed" << std::endl;
+	getNodes(id).erase(getNodes(id).find(node(label)));
 	
 	//Oraz wszystkie krawędzie do niego wchodzące.
-	//TODO czy jest wszystko zwracane przez referencję
-	vertices vert = graph.second;
-	for(vertices::iterator it = vert.begin(); it != vert.begin(); it++)
+	for(vertices::iterator it = getVertices(id).begin(); it != getVertices(id).end(); it++)
 	{
+		//TODO DELETE
+		std::cerr << "TUTEJ it->first=" << it->first << " , it->second=" << it->second << std::endl;
 		if(it->first == node(label) || it->second == node(label))
 		{
 			if(debug)
-				cerr << "network_remove_node: network " << id << ", link(" << it->first << ", " << it->second << ") removed" << endl;
-			vert.erase(it);
+				std::cerr << "network_remove_node: network " << id << ", link(" << it->first << ", " << it->second << ") removed" << std::endl;
+			getVertices(id).erase(it);
 		}
 	}
-	
 }
 
 /*
@@ -383,52 +331,50 @@ void network_remove_node(unsigned long id, const char* label)
  * i sieć ta nie zawiera jeszcze krawędzi (slabel, tlabel), to dodaje krawędź (slabel, tlabel) do sieci, 
  * a w przeciwnym przypadu nic nie robi. Jeżeli w sieci nie istnieje węzeł o etykiecie któregoś z końców krawędzi,
  * to jest on również dodawany.
- * TODO dopytać o przypadek gdy nie istnieje żaden z węzłów, póki co zakładam, że dodajemy wtedy oba węzły.
  */
 void network_add_link(unsigned long id, const char* slabel, const char* tlabel)
 {
 	if(debug)
-		cerr << "network_add_link(" << id << ", " << slabel << ", " << tlabel << ")" << endl;
+		std::cerr << "network_add_link(" << id << ", " << slabel << ", " << tlabel << ")" << std::endl;
 	if(!doesNetworkExist(id))
 	{
 		if(debug)
-			cerr << "network_add_link: network " << id << " doesn't exist" << endl;
+			std::cerr << "network_add_link: network " << id << " doesn't exist" << std::endl;
 		return;
 	}
 	if(slabel == NULL)
 	{
 		if(debug)
-			cerr << "network_add_link: network " << id << ", first node's label is NULL" << endl;
+			std::cerr << "network_add_link: network " << id << ", first node's label is NULL" << std::endl;
 		return;
 	}
 	if(tlabel == NULL)
 	{
 		if(debug)
-			cerr << "network_add_link: network " << id << ", second node's label is NULL" << endl;
+			std::cerr << "network_add_link: network " << id << ", second node's label is NULL" << std::endl;
 		return;
 	}
 	
-	//TODO czy jest zwracana referencja
-	vertices vert = getGraphOfNetwork(id).second;
-	
 	//Dodajemy węzły jeżeli nie istniały do tej pory.
-	//TODO wydzielić esencję network_add_node do innej funkcji, aby nie wypluwała przy poniższyk komunikatów na stderr
 	network_add_node(id, slabel);
 	network_add_node(id, tlabel);
 	
+	//Dodawana krawędź.
+	vertex v = vertex(node(slabel), node(tlabel));
+	
 	//Węzeł początkowy ma już krawędzie wychodzące - musimy zadbać żeby nie zdublować krawędzi.
 	//Sprawdzamy czy krawędź już istnieje jeżeli tak przerywamy.
-	if(vert.find(vertex(node(slabel), node(tlabel))) != vert.end())
+	if(getVertices(id).find(v) != getVertices(id).end())
 	{
 		if(debug)
-			cerr << "newtork_add_link: network " << id << ", link(" << slabel << ", " << tlabel << ") already exists" << endl;
+			std::cerr << "newtork_add_link: network " << id << ", link(" << slabel << ", " << tlabel << ") already exists" << std::endl;
 		return;
 	}
 	
 	if(debug)
-		cerr << "newtork_add_link: network " << id << ", link(" << slabel << ", " << tlabel << ") added" << endl;
+		std::cerr << "newtork_add_link: network " << id << ", link(" << slabel << ", " << tlabel << ") added" << std::endl;
 	//Dodajemy krawędź.
-	vert.insert(vertex(node(slabel), node(tlabel)));
+	getVertices(id).insert(v);
 }
 
 
@@ -439,31 +385,30 @@ void network_add_link(unsigned long id, const char* slabel, const char* tlabel)
 void network_remove_link(unsigned long id, const char* slabel, const char* tlabel)
 {
 	if(debug)
-		cerr << "network_remove_link(" << id << ", " << slabel << ", " << tlabel << ")";
+		std::cerr << "network_remove_link(" << id << ", " << slabel << ", " << tlabel << ")" << std::endl;
 	if(!doesNetworkExist(id))
 	{
 		return;
 	}
-	if(getNetworkType(id) == GROWINGNET)
+	if(getNetType(id) == GROWINGNET)
 	{
 		if(debug)
-			cerr << "network_remove_link: network " << id << " is a growing network, failed to remove link(" << slabel << ", " << tlabel << ")" << endl;
+			std::cerr << "network_remove_link: network " << id << " is a growing network, failed to remove link(" << slabel << ", " << tlabel << ")" << std::endl;
 		return;
 	}
 	
-	//TODO czy jest przekazywana referencja
-	vertices vert = getGraphOfNetwork(id).second;
+	//Usuwana krawędź.
 	vertex v = vertex(node(slabel), node(tlabel));
 	
-	if(vert.find(v) != vert.end())
+	if(getVertices(id).find(v) != getVertices(id).end())
 	{
 		if(debug)
-			cerr << "network_remove_link: network " << id << ", link(" << slabel << ", " << tlabel << ") removed" << endl;
-		vert.erase(v);
+			std::cerr << "network_remove_link: network " << id << ", link(" << slabel << ", " << tlabel << ") removed" << std::endl;
+		getVertices(id).erase(v);
 	}
 	else
 		if(debug)
-			cerr << "network_remove_link: network " << id << ", link(" << slabel << ", " << tlabel << ") doesn't exist" << endl;
+			std::cerr << "network_remove_link: network " << id << ", link(" << slabel << ", " << tlabel << ") doesn't exist" << std::endl;
 }
 
 /*
@@ -474,30 +419,29 @@ void network_clear(unsigned long id)
 {
 	if(debug)
 	{
-		cerr << "network_clear(" << id << ")" << endl;
-		cerr << "network_clear: network " << id;
+		std::cerr << "network_clear(" << id << ")" << std::endl;
+		std::cerr << "network_clear: network " << id;
 	}
 	if(!doesNetworkExist(id))
 	{
 		if(debug)
-			cerr << " doesn't exist, failed to clear" << endl;
+			std::cerr << " doesn't exist, failed to clear" << std::endl;
 		return;
 	}
-	if(getNetworkType(id) == GROWINGNET)
+	if(getNetType(id) == GROWINGNET)
 	{
 		if(debug)
-			cerr << " is a growing network, failed to clear" << endl;
+			std::cerr << " is a growing network, failed to clear" << std::endl;
 		return;
 	}
 	
-	networkGraph graph = getGraphOfNetwork(id);
 	//Usuwamy graf reprezentujący węzły z krawędziami wyjściowymi.
-	graph.first.clear();
+	getNodes(id).clear();
 	//Usuwamy graf reprezentująćy węzły bez krawędzi wyjściowych.
-	graph.second.clear();
+	getVertices(id).clear();
 	
 	if(debug)
-		cerr << "network_clear: network " << id << " cleared" << endl;
+		std::cerr << "network_clear: network " << id << " cleared" << std::endl;
 }
 
 /*
@@ -507,38 +451,41 @@ size_t network_out_degree(unsigned long id, const char* label)
 {
 	if(debug)
 	{
-		cerr << "network_out_degree(" << id << ", " << label << ")" << endl;
-		cerr << "network_out_degree: network " << id;
+		std::cerr << "network_out_degree(" << id << ", " << label << ")" << std::endl;
+		std::cerr << "network_out_degree: network " << id;
 	}
 	if(!doesNetworkExist(id))
 	{
 		if(debug)
-			cerr << " doesn't exist, out degree = 0" << endl;
+			std::cerr << " doesn't exist, out degree = 0" << std::endl;
 		return 0;
 	}
 	
-	networkGraph graph = getGraphOfNetwork(id);
 	//Węzeł nie istnieje.
-	if(graph.first.find(node(label)) == graph.first.end())
+	if(getNodes(id).find(node(label)) == getNodes(id).end())
 	{
 		if(debug)
-			cerr << ", label " << label << " doesn't exist" << endl;
+			std::cerr << ", label " << label << " doesn't exist" << std::endl;
 		return 0;
 	}
 	
 	//Zwracamy szukamy krawędzi wychodzących z wierzchołka.
-	//TODO może da się to ładniej zrealizować.
 	size_t ret = 0;
 	node v = node(label);
-	vertices::iterator it = graph.second.lower_bound(vertex(v, node("")));
+	//TODO NIE DZIAŁA :(((
+	vertices::iterator it = getVertices(id).lower_bound(vertex(v, node("")));
 	
-	while(it->first == v)
+	//TODO zakładam działanie leniwe koniunkcji
+	while(it != getVertices(id).end() && it->first == v)
 	{
+		//TODO DELETE
+		std::cerr << "tst ret=" << ret << " , it->first=" << it->first << " , it->second=" << it->second << std::endl;
 		ret++;
 		it++;
 	}
+	
 	if(debug)
-		cerr << ", label " << label << " out degree = " << ret << endl;
+		std::cerr << ", label " << label << " out degree = " << ret << std::endl;
 	return ret;
 }
 
@@ -549,37 +496,35 @@ size_t network_in_degree(unsigned long id, const char* label)
 {
 	if(debug)
 	{
-		cerr << "network_in_degree(" << id << ", " << label << ")" << endl;
-		cerr << "network_in_degree: network " << id;
+		std::cerr << "network_in_degree(" << id << ", " << label << ")" << std::endl;
+		std::cerr << "network_in_degree: network " << id;
 	}
 	
 	if(!doesNetworkExist(id))
 	{
 		if(debug)
-			cerr << " doesn't exist, in degree = 0" << endl;
+			std::cerr << " doesn't exist, in degree = 0" << std::endl;
 		return 0;
 	}
 	
-	networkGraph graph = getGraphOfNetwork(id);
 	//Węzeł nie istnieje.
-	if(graph.first.find(node(label)) == graph.first.end())
+	if(getNodes(id).find(node(label)) == getNodes(id).end())
 	{
 		if(debug)
-            cerr << ", label " << label << " doesn't exist  " << endl;
+			std::cerr << ", label " << label << " doesn't exist  " << std::endl;
 		return 0;
 	}
 	
 	size_t counter = 0;
 	node v = node(label);
 	
-	for(vertices::iterator it = graph.second.begin(); it != graph.second.end(); it++)
+	for(vertices::iterator it = getVertices(id).begin(); it != getVertices(id).end(); it++)
 	{
 		if(it->second == v)
 			counter++;
 	}
 	
 	if(debug)
-		cerr << ", label " << label << " in degree = " << counter << endl;
+		std::cerr << ", label " << label << " in degree = " << counter << std::endl;
 	return counter;
 }
-
