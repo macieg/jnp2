@@ -5,7 +5,8 @@
 #define EXTERNC extern "C"
 #else
 #define EXTERNC
-#endif	
+#endif
+
 typedef unsigned long UL;
 
 /*
@@ -70,5 +71,6 @@ EXTERNC size_t network_out_degree(unsigned long id, const char* label);
  * Jeżeli istnieje sieć o identyfikatorze id, a w niej węzeł o etykiecie label, to zwraca ilość krawędzi wchodzących do tego węzła, a w przeciwnym przypadku zwraca 0.
  */
 EXTERNC size_t network_in_degree(unsigned long id, const char* label);
+
 #undef EXTERNC
 #endif
