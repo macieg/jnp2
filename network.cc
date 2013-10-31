@@ -239,7 +239,15 @@ size_t network_links_number(unsigned long id)
 void network_add_node(unsigned long id, const char* label)
 {
 	if(debug)
+	{
+		if(label == NULL)
+		{
+			std::cerr << "network_add_node(" << id << ", NULL)" << std::endl;
+			std::cerr << "newtork_add_node: execution terminated in case of NULL as argument" << std::endl;
+			return;
+		}
 		std::cerr << "network_add_node(" << id << ", " << label << ")" << std::endl;
+	}
 	if(doesNetworkExist(id))
 	{
 		//Nie ma jeszcze zaznaczonego wierzchołka, możemy dodawać.
@@ -265,7 +273,15 @@ void network_add_node(unsigned long id, const char* label)
 void network_remove_node(unsigned long id, const char* label)
 {
 	if(debug)
+	{
+		if(label == NULL)
+		{
+			std::cerr << "network_remove_node(" << id << ", NULL)" << std::endl;
+			std::cerr << "network_remove_node: execution terminated in case of NULL as argument" << std::endl;
+			return;
+		}
 		std::cerr << "network_remove_node(" << id << ", " << label << ")" << std::endl;
+	}
 	if(!doesNetworkExist(id))
 	{
 		if(debug)
@@ -313,7 +329,15 @@ void network_add_link(unsigned long id, const char* slabel, const char* tlabel)
 {
 	//TODO sprawdzić czy ta linia się nie posypie w przypadku tlabel || slabel == NULL
 	if(debug)
+	{
+		if(slabel == NULL || tlabel == NULL)
+		{
+			std::cerr << "network_add_link(" << id << ", x , y)" << std::endl;
+			std::cerr << "newtork_add_link: execution terminated in case of NULL as argument (x or y)" << std::endl;
+			return;
+		}
 		std::cerr << "network_add_link(" << id << ", " << slabel << ", " << tlabel << ")" << std::endl;
+	}
 	if(!doesNetworkExist(id))
 	{
 		if(debug)
@@ -363,7 +387,15 @@ void network_add_link(unsigned long id, const char* slabel, const char* tlabel)
 void network_remove_link(unsigned long id, const char* slabel, const char* tlabel)
 {
 	if(debug)
+	{
+		if(slabel == NULL || tlabel == NULL)
+		{
+			std::cerr << "network_remove_link(" << id << ", x , y)" << std::endl;
+			std::cerr << "network_remove_link: execution terminated in case of NULL as argument (x or y)" << std::endl;
+			return;
+		}
 		std::cerr << "network_remove_link(" << id << ", " << slabel << ", " << tlabel << ")" << std::endl;
+	}
 	if(!doesNetworkExist(id))
 	{
 		return;
