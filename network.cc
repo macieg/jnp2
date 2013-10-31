@@ -146,7 +146,6 @@ inline netType &getNetType(const ID &id)
  */
 unsigned long network_new(int growing)
 {
-	std::ios_base::Init init;
 	netType ntype;
 	
 	if(growing == 0)
