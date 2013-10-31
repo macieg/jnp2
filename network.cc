@@ -146,7 +146,6 @@ inline netType &getNetType(const ID &id)
  */
 unsigned long network_new(int growing)
 {
-	//TODO dopisz może jakiś komentarz co to właściwie robi
 	std::ios_base::Init init;
 	netType ntype;
 	
@@ -267,7 +266,7 @@ void network_add_node(unsigned long id, const char* label)
 }
 
 /*
- * Jeżeli istnieje sieć o identyfikatorze, a w niej węzeł o etykiecie label oraz sieć nie jest rosnąca, 
+ * Jeżeli istnieje sieć o identyfikatorze, a w niej węzeł o etykiecie label oraz sieć nie jest rosnąca,
  * to usuwa węzeł z sieci wraz ze wszystkimi krawędziami wchodzącymi i wychodzącymi, a w przeciwnym przypadku nic nie robi.
  */
 void network_remove_node(unsigned long id, const char* label)
@@ -327,7 +326,6 @@ void network_remove_node(unsigned long id, const char* label)
  */
 void network_add_link(unsigned long id, const char* slabel, const char* tlabel)
 {
-	//TODO sprawdzić czy ta linia się nie posypie w przypadku tlabel || slabel == NULL
 	if(debug)
 	{
 		if(slabel == NULL || tlabel == NULL)
@@ -454,7 +452,6 @@ void network_clear(unsigned long id)
 /*
  * Jeżeli istnieje sieć o identyfikatorze id, a w niej węzeł o etykiecie label, to zwraca ilość krawędzi wychodzących z tego węzła, a w przeciwnym przypadku zwraca 0.
  */
-//TODO trzeba to porządnie wytestować, w przypadku braku pewności możemy walnąć chyba bruta po wszystkich krawędziach w O(E)
 size_t network_out_degree(unsigned long id, const char* label)
 {
 	if(debug)
@@ -477,12 +474,8 @@ size_t network_out_degree(unsigned long id, const char* label)
 	//Zwracamy szukamy krawędzi wychodzących z wierzchołka.
 	size_t ret = 0;
 	node v = node(label);
-	//TODO sprawdzić czy ten lower_bound się nie posypie w przypadku braku krawędzi
-	//TODO zamienić może na zwykłą iterację po wszystkich krawędziach
 	edges::iterator it = getEdges(id).lower_bound(edge(v, node("")));
 	
-	//TODO tutaj zakładam działanie leniwe koniunkcji, nie wiem czy na wszystich 
-	//TODO architekturach koniunkcja w ten sposób się ewaluuje, może być do poprawki
 	while(it != getEdges(id).end() && it->first == v)
 	{
 		ret++;
