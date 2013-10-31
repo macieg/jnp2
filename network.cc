@@ -328,30 +328,25 @@ void network_add_link(unsigned long id, const char* slabel, const char* tlabel)
 {
 	if(debug)
 	{
-		if(slabel == NULL || tlabel == NULL)
+		if(slabel == NULL)
 		{
-			std::cerr << "network_add_link(" << id << ", x , y)" << std::endl;
-			std::cerr << "newtork_add_link: execution terminated in case of NULL as argument (x or y)" << std::endl;
+			std::cerr << "network_add_link: network " << id << ", first node's label is NULL" << std::endl;
+			std::cerr << "newtork_add_link: execution terminated in case of NULL as first argument" << std::endl;
+			return;
+		}
+		if(tlabel == NULL)
+		{
+			std::cerr << "network_add_link: network " << id << ", second node's label is NULL" << std::endl;
+			std::cerr << "newtork_add_link: execution terminated in case of NULL as second argument" << std::endl;
 			return;
 		}
 		std::cerr << "network_add_link(" << id << ", " << slabel << ", " << tlabel << ")" << std::endl;
 	}
+	
 	if(!doesNetworkExist(id))
 	{
 		if(debug)
 			std::cerr << "network_add_link: network " << id << " doesn't exist" << std::endl;
-		return;
-	}
-	if(slabel == NULL)
-	{
-		if(debug)
-			std::cerr << "network_add_link: network " << id << ", first node's label is NULL" << std::endl;
-		return;
-	}
-	if(tlabel == NULL)
-	{
-		if(debug)
-			std::cerr << "network_add_link: network " << id << ", second node's label is NULL" << std::endl;
 		return;
 	}
 	
@@ -386,10 +381,16 @@ void network_remove_link(unsigned long id, const char* slabel, const char* tlabe
 {
 	if(debug)
 	{
-		if(slabel == NULL || tlabel == NULL)
+		if(slabel == NULL)
 		{
-			std::cerr << "network_remove_link(" << id << ", x , y)" << std::endl;
-			std::cerr << "network_remove_link: execution terminated in case of NULL as argument (x or y)" << std::endl;
+			std::cerr << "network_remove_link: network " << id << ", first node's label is NULL" << std::endl;
+			std::cerr << "network_remove_link: execution terminated in case of NULL as first argument" << std::endl;
+			return;
+		}
+		if(tlabel == NULL)
+		{
+			std::cerr << "network_remove_link: network " << id << ", second node's label is NULL" << std::endl;
+			std::cerr << "network_remove_link: execution terminated in case of NULL as second argument" << std::endl;
 			return;
 		}
 		std::cerr << "network_remove_link(" << id << ", " << slabel << ", " << tlabel << ")" << std::endl;
@@ -455,7 +456,15 @@ void network_clear(unsigned long id)
 size_t network_out_degree(unsigned long id, const char* label)
 {
 	if(debug)
+	{
+		if(label == NULL)
+		{
+			std::cerr << "network_out_degree(" << id << ", NULL)" << std::endl;
+			std::cerr << "network_out_degree: execution terminated in case of NULL as second argument" << std::endl;
+			return 0;
+		}
 		std::cerr << "network_out_degree(" << id << ", " << label << ")" << std::endl;
+	}
 	if(!doesNetworkExist(id))
 	{
 		if(debug)
@@ -493,7 +502,14 @@ size_t network_out_degree(unsigned long id, const char* label)
 size_t network_in_degree(unsigned long id, const char* label)
 {
 	if(debug)
-		std::cerr << "network_in_degree(" << id << ", " << label << ")" << std::endl;
+	{
+		if(label == NULL)
+		{
+			std::cerr << "network_in_degree(" << id << ", NULL)" << std::endl;
+			std::cerr << "network_in_degree: execution terminated in case of NULL as second argument" << std::endl;
+			return 0;
+		}
+	}
 	if(!doesNetworkExist(id))
 	{
 		if(debug)
@@ -517,7 +533,7 @@ size_t network_in_degree(unsigned long id, const char* label)
 		if(it->second == v)
 			counter++;
 	}
-	
+
 	if(debug)
 		std::cerr << "network_in_degree: network " << id << ", label " << label << " in degree = " << counter << std::endl;
 	return counter;
