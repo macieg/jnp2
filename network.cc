@@ -1,7 +1,7 @@
 #ifdef DEBUG
-	const bool debug = true;
+const bool debug = true;
 #else
-	const bool debug = false;
+const bool debug = false;
 #endif
 
 #include <iostream>
@@ -147,23 +147,23 @@ inline netType &getNetType(const ID &id)
 unsigned long network_new(int growing)
 {
 	netType ntype;
-	
+
 	if(growing == 0)
 		ntype = NOTGROWINGNET;
 	else
 		ntype = GROWINGNET;
-	
+
 	singleNetwork ret = newNetwork(ntype);
 	getNetworks().insert(ret);
-	
+
 	unsigned long result = ret.first;
-	
+
 	if(debug)
 	{
 		std::cerr << "network_new(" << growing << ")" << std::endl;
 		std::cerr << "network_new: network " << result<< " created" << std::endl;
 	}
-	
+
 	return result;
 }
 
@@ -177,7 +177,7 @@ void network_delete(unsigned long id)
 	if(doesNetworkExist(id))
 	{
 		if(debug)
-		std::cerr << "newtwork_delete: network " << id << " deleted" << std::endl;
+			std::cerr << "newtwork_delete: network " << id << " deleted" << std::endl;
 		getNetworks().erase(id);
 	}
 	else
@@ -217,7 +217,7 @@ size_t network_links_number(unsigned long id)
 	if(doesNetworkExist(id))
 	{
 		size_t counter = getEdges(id).size();
-		
+
 		if(debug)
 			std::cerr << "network_links_number: network " << id << " contains " << counter << " links" << std::endl;
 		return counter;
@@ -236,16 +236,18 @@ size_t network_links_number(unsigned long id)
  */
 void network_add_node(unsigned long id, const char* label)
 {
-	if(debug)
+	if(label == NULL)
 	{
-		if(label == NULL)
+		if (debug)
 		{
 			std::cerr << "network_add_node(" << id << ", NULL)" << std::endl;
 			std::cerr << "newtork_add_node: execution terminated in case of NULL as argument" << std::endl;
-			return;
 		}
-		std::cerr << "network_add_node(" << id << ", " << label << ")" << std::endl;
+		return;
 	}
+	if (debug)
+		std::cerr << "network_add_node(" << id << ", " << label << ")" << std::endl;
+
 	if(doesNetworkExist(id))
 	{
 		//Nie ma jeszcze zaznaczonego wierzchołka, możemy dodawać.
@@ -270,16 +272,18 @@ void network_add_node(unsigned long id, const char* label)
  */
 void network_remove_node(unsigned long id, const char* label)
 {
-	if(debug)
+
+	if(label == NULL)
 	{
-		if(label == NULL)
+		if(debug)
 		{
 			std::cerr << "network_remove_node(" << id << ", NULL)" << std::endl;
 			std::cerr << "network_remove_node: execution terminated in case of NULL as argument" << std::endl;
-			return;
 		}
-		std::cerr << "network_remove_node(" << id << ", " << label << ")" << std::endl;
+		return;
 	}
+	if (debug)
+		std::cerr << "network_remove_node(" << id << ", " << label << ")" << std::endl;
 	if(!doesNetworkExist(id))
 	{
 		if(debug)
@@ -292,19 +296,19 @@ void network_remove_node(unsigned long id, const char* label)
 			std::cerr << "newtork_remove_node: network " << id << " is a growing network, failed to remove node " << label << std::endl;
 		return;
 	}
-	
+
 	if(getNodes(id).find(node(label)) == getNodes(id).end())
 	{
 		if(debug)
 			std::cerr << "network_remove_node: network " << id << " doesn't contain node " << label << ", failed to remove node " << label << std::endl;
 		return;
 	}
-	
+
 	//Usuwamy wierzchołek wraz z ewentualnymi krawędziami wychodzącymi z niego.
 	if(debug)
 		std::cerr << "network_remove_node: network " << id << " node " << label << " removed" << std::endl;
 	getNodes(id).erase(getNodes(id).find(node(label)));
-	
+
 	//Oraz wszystkie krawędzie do niego wchodzące.
 	for(edges::iterator it = getEdges(id).begin(); it != getEdges(id).end(); it++)
 	{
@@ -325,37 +329,41 @@ void network_remove_node(unsigned long id, const char* label)
  */
 void network_add_link(unsigned long id, const char* slabel, const char* tlabel)
 {
-	if(debug)
+	if(slabel == NULL)
 	{
-		if(slabel == NULL)
+		if (debug)
 		{
 			std::cerr << "network_add_link: network " << id << ", first node's label is NULL" << std::endl;
 			std::cerr << "newtork_add_link: execution terminated in case of NULL as first argument" << std::endl;
-			return;
 		}
-		if(tlabel == NULL)
+		return;
+	}
+	if(tlabel == NULL)
+	{
+		if (debug)
 		{
 			std::cerr << "network_add_link: network " << id << ", second node's label is NULL" << std::endl;
 			std::cerr << "newtork_add_link: execution terminated in case of NULL as second argument" << std::endl;
-			return;
 		}
-		std::cerr << "network_add_link(" << id << ", " << slabel << ", " << tlabel << ")" << std::endl;
+		return;
 	}
-	
+	if (debug)
+		std::cerr << "network_add_link(" << id << ", " << slabel << ", " << tlabel << ")" << std::endl;
+
 	if(!doesNetworkExist(id))
 	{
 		if(debug)
 			std::cerr << "network_add_link: network " << id << " doesn't exist" << std::endl;
 		return;
 	}
-	
+
 	//Dodajemy węzły jeżeli nie istniały do tej pory.
 	network_add_node(id, slabel);
 	network_add_node(id, tlabel);
-	
+
 	//Dodawana krawędź.
 	edge e = edge(node(slabel), node(tlabel));
-	
+
 	//Węzeł początkowy ma już krawędzie wychodzące - musimy zadbać żeby nie zdublować krawędzi.
 	//Sprawdzamy czy krawędź już istnieje jeżeli tak przerywamy.
 	if(getEdges(id).find(e) != getEdges(id).end())
@@ -364,7 +372,7 @@ void network_add_link(unsigned long id, const char* slabel, const char* tlabel)
 			std::cerr << "newtork_add_link: network " << id << ", link(" << slabel << ", " << tlabel << ") already exists" << std::endl;
 		return;
 	}
-	
+
 	if(debug)
 		std::cerr << "newtork_add_link: network " << id << ", link(" << slabel << ", " << tlabel << ") added" << std::endl;
 	//Dodajemy krawędź.
@@ -378,22 +386,27 @@ void network_add_link(unsigned long id, const char* slabel, const char* tlabel)
  */
 void network_remove_link(unsigned long id, const char* slabel, const char* tlabel)
 {
-	if(debug)
+
+	if(slabel == NULL)
 	{
-		if(slabel == NULL)
+		if(debug)
 		{
 			std::cerr << "network_remove_link: network " << id << ", first node's label is NULL" << std::endl;
 			std::cerr << "network_remove_link: execution terminated in case of NULL as first argument" << std::endl;
-			return;
 		}
-		if(tlabel == NULL)
+		return;
+	}
+	if(tlabel == NULL)
+	{
+		if(debug)
 		{
 			std::cerr << "network_remove_link: network " << id << ", second node's label is NULL" << std::endl;
 			std::cerr << "network_remove_link: execution terminated in case of NULL as second argument" << std::endl;
-			return;
 		}
-		std::cerr << "network_remove_link(" << id << ", " << slabel << ", " << tlabel << ")" << std::endl;
+		return;
 	}
+	if (debug)
+		std::cerr << "network_remove_link(" << id << ", " << slabel << ", " << tlabel << ")" << std::endl;
 	if(!doesNetworkExist(id))
 	{
 		return;
@@ -404,10 +417,10 @@ void network_remove_link(unsigned long id, const char* slabel, const char* tlabe
 			std::cerr << "network_remove_link: network " << id << " is a growing network, failed to remove link(" << slabel << ", " << tlabel << ")" << std::endl;
 		return;
 	}
-	
+
 	//Usuwana krawędź.
 	edge e = edge(node(slabel), node(tlabel));
-	
+
 	if(getEdges(id).find(e) != getEdges(id).end())
 	{
 		if(debug)
@@ -439,12 +452,12 @@ void network_clear(unsigned long id)
 			std::cerr << "network_clear: network " << id << " is a growing network, failed to clear" << std::endl;
 		return;
 	}
-	
+
 	//Usuwamy graf reprezentujący węzły z krawędziami wyjściowymi.
 	getNodes(id).clear();
 	//Usuwamy graf reprezentująćy węzły bez krawędzi wyjściowych.
 	getEdges(id).clear();
-	
+
 	if(debug)
 		std::cerr << "network_clear: network " << id << " cleared" << std::endl;
 }
@@ -454,23 +467,25 @@ void network_clear(unsigned long id)
  */
 size_t network_out_degree(unsigned long id, const char* label)
 {
-	if(debug)
+
+	if(label == NULL)
 	{
-		if(label == NULL)
+		if(debug)
 		{
 			std::cerr << "network_out_degree(" << id << ", NULL)" << std::endl;
 			std::cerr << "network_out_degree: execution terminated in case of NULL as second argument" << std::endl;
-			return 0;
 		}
-		std::cerr << "network_out_degree(" << id << ", " << label << ")" << std::endl;
+		return 0;
 	}
+	if (debug)
+		std::cerr << "network_out_degree(" << id << ", " << label << ")" << std::endl;
 	if(!doesNetworkExist(id))
 	{
 		if(debug)
 			std::cerr << "network_out_degree: network " << id << " doesn't exist, out degree = 0" << std::endl;
 		return 0;
 	}
-	
+
 	//Węzeł nie istnieje.
 	if(getNodes(id).find(node(label)) == getNodes(id).end())
 	{
@@ -478,18 +493,18 @@ size_t network_out_degree(unsigned long id, const char* label)
 			std::cerr << "network_out_degree: network " << id << ", label " << label << " doesn't exist" << std::endl;
 		return 0;
 	}
-	
+
 	//Zwracamy szukamy krawędzi wychodzących z wierzchołka.
 	size_t ret = 0;
 	node v = node(label);
 	edges::iterator it = getEdges(id).lower_bound(edge(v, node("")));
-	
+
 	while(it != getEdges(id).end() && it->first == v)
 	{
 		ret++;
 		it++;
 	}
-	
+
 	if(debug)
 		std::cerr << "network_out_degree: network " << id << ", label " << label << " out degree = " << ret << std::endl;
 	return ret;
@@ -500,14 +515,15 @@ size_t network_out_degree(unsigned long id, const char* label)
  */
 size_t network_in_degree(unsigned long id, const char* label)
 {
-	if(debug)
+
+	if(label == NULL)
 	{
-		if(label == NULL)
+		if (debug)
 		{
 			std::cerr << "network_in_degree(" << id << ", NULL)" << std::endl;
 			std::cerr << "network_in_degree: execution terminated in case of NULL as second argument" << std::endl;
-			return 0;
 		}
+		return 0;
 	}
 	if(!doesNetworkExist(id))
 	{
@@ -515,7 +531,7 @@ size_t network_in_degree(unsigned long id, const char* label)
 			std::cerr << "network_in_degree: network " << id << " doesn't exist, in degree = 0" << std::endl;
 		return 0;
 	}
-	
+
 	//Węzeł nie istnieje.
 	if(getNodes(id).find(node(label)) == getNodes(id).end())
 	{
@@ -523,10 +539,10 @@ size_t network_in_degree(unsigned long id, const char* label)
 			std::cerr << "network_in_degree: network " << id << ", label " << label << " doesn't exist  " << std::endl;
 		return 0;
 	}
-	
+
 	size_t counter = 0;
 	node v = node(label);
-	
+
 	for(edges::iterator it = getEdges(id).begin(); it != getEdges(id).end(); it++)
 	{
 		if(it->second == v)
